@@ -1,0 +1,70 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [":prConcurrentLimit10", "workarounds:typesNodeVersioning"],
+  "enabledManagers": ["cargo", "dockerfile", "nodenv", "npm", "pep621"],
+
+  // --- general config
+  "dependencyDashboard": true,
+  "labels": ["no-fail-fast", "skip-audit"],
+  "npmrc": "@taskworld:registry=https://npm.pkg.github.com/",
+  "npmrcMerge": true,
+  "semanticCommitScope": "monorepo",
+  "semanticCommitType": "chore",
+  "timezone": "Asia/Bangkok",
+
+  // --- dependencies update config
+  // we disable auto-update of majors since it can be breaking code hardly and park the PR quite long time
+  "major": {
+    "enabled": false
+  },
+  "rangeStrategy": "bump",
+  // this is considered "manual mode"
+  "updatePinnedDependencies": false,
+
+  // --- advanced rules
+  "hostRules": [
+    {
+      "matchHost": "https://npm.pkg.github.com/",
+      "hostType": "npm",
+      "token": "{{ secrets.GITHUB_REGISTRY_TOKEN }}"
+    }
+  ],
+
+  "packageRules": [
+    {
+      // only enable semantic commits if production dependencies have changed
+      "matchDepTypes": ["dependencies"],
+      "bumpVersion": "minor",
+    },
+    {
+      "matchManagers": ["npm"],
+      "groupName": "all",
+      "schedule": ["on the 2nd and 4th day instance on monday before 9am"], // bi-weekly (2, 4)
+      "matchFileNames": [
+        "package.json",
+        "services/**"
+      ],
+      "postUpdateOptions": ["pnpmDedupe"],
+    },
+    // node runtime
+    {
+      "matchManagers": ["nodenv", "npm"],
+      "matchDepNames": ["@types/node"],
+      "matchNewValue": "/^[12][02468]\\./",
+      "updatePinnedDependencies": true,
+      "major": {
+        "enabled": true
+      },
+    },
+    // nodejs major dependencies management: one per workspace
+    {
+      "matchManagers": ["npm"],
+      "groupName": "{{packageFileDir}}",
+      "schedule": ["on the 1st day instance on thursday before 9am"], // every 1st thursday of the month
+      "major": {
+        "enabled": true
+      },
+      "matchUpdateTypes": ["major"],
+    },
+  ],
+}
