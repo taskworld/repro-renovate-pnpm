@@ -21,6 +21,11 @@
   // this is considered "manual mode"
   "updatePinnedDependencies": false,
 
+  // constraint on pnpm
+  "constraints": {
+    "pnpm": "10.8.1"
+  },
+
   // --- advanced rules
   "hostRules": [
     {
